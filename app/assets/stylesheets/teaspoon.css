@@ -354,7 +354,7 @@ html[xmlns] #teaspoon-interface .teaspoon-clearfix {
 }
 #teaspoon-report #teaspoon-report-all div {
   background: rgba(255, 255, 255, 0.7);
-  height: 100px;
+  height: 300px;
   margin-bottom: 0;
 }
 
@@ -368,7 +368,9 @@ html[xmlns] #teaspoon-interface .teaspoon-clearfix {
 #teaspoon-report #teaspoon-report-failures div {
   background: rgba(255, 255, 255, 0.6);
 }
-
+#teaspoon-report #teaspoon-report-failures .source-code-extract {
+  font-family: Courier;
+}
 /* State Overrides
  *---------------------------------------------------------------------------*/
 body.teaspoon-failed #teaspoon-interface {
