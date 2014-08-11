@@ -160,8 +160,7 @@
   var __slice = [].slice;
 
   Teaspoon.fixture = (function() {
-    var addContent, cleanup, create, load, loadComplete, preload, putContent, set, xhr, xhrRequest,
-      _this = this;
+    var addContent, cleanup, create, load, loadComplete, preload, putContent, set, xhr, xhrRequest;
 
     fixture.cache = {};
 
@@ -340,7 +339,7 @@
 
     return fixture;
 
-  }).call(this);
+  })();
 
 }).call(this);
 (function() {
@@ -382,6 +381,106 @@
       }
     });
   };
+
+}).call(this);
+(function() {
+  var __bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; };
+
+  Teaspoon.errorToFileMapper = (function() {
+    var xhr, xhrRequest;
+
+    function errorToFileMapper(linesOfContext) {
+      this.linesOfContext = linesOfContext != null ? linesOfContext : 5;
+      this.extractLines = __bind(this.extractLines, this);
+      this.fetchSourceCode = __bind(this.fetchSourceCode, this);
+      this.fetch = __bind(this.fetch, this);
+    }
+
+    errorToFileMapper.prototype.url = function(stack) {
+      var match, url, urlRegex;
+      urlRegex = /\b(https?):\/\/[\-A-Za-z0-9+&@#\/%?=~_|!:,.;]*[\-A-Za-z0-9+&@#\/%=~_|‌​]/;
+      stack = stack.split("\n")[1];
+      if (stack != null) {
+        match = stack.match(urlRegex);
+        if (match != null) {
+          url = match[0];
+          return url.replace(new RegExp("(:[0-9]+)+$"), "");
+        }
+      }
+    };
+
+    errorToFileMapper.prototype.lineNumberFrom = function(stack) {
+      var line, match;
+      line = stack.split("\n")[0];
+      match = line.match(new RegExp("[0-9]+$"));
+      if (match != null) {
+        return parseInt(match[0]);
+      }
+    };
+
+    errorToFileMapper.prototype.fetch = function(error, loadComplete) {
+      var lineNumber, url;
+      url = this.url(error.stack);
+      lineNumber = this.lineNumberFrom(error.stack);
+      if ((url != null) && (lineNumber != null)) {
+        return this.fetchSourceCode(url, lineNumber, loadComplete);
+      } else {
+        return loadComplete();
+      }
+    };
+
+    xhr = null;
+
+    errorToFileMapper.prototype.fetchSourceCode = function(url, lineNumber, loadComplete) {
+      return xhrRequest(url, (function(_this) {
+        return function() {
+          if (xhr.readyState !== 4) {
+            return;
+          }
+          if (xhr.status !== 200) {
+            throw "Unable to load file \"" + url + "\".";
+          }
+          return loadComplete(_this.extractLines(xhr.responseText, lineNumber));
+        };
+      })(this));
+    };
+
+    errorToFileMapper.prototype.extractLines = function(body, lineNumber) {
+      var finish, lines, slice, start;
+      lines = body.split("\n");
+      start = lineNumber - this.linesOfContext / 2.0;
+      finish = lineNumber + this.linesOfContext / 2.0;
+      slice = lines.slice(start, finish);
+      return slice.join("\n");
+    };
+
+    xhrRequest = function(url, callback) {
+      var e;
+      if (window.XMLHttpRequest) {
+        xhr = new XMLHttpRequest();
+      } else if (window.ActiveXObject) {
+        try {
+          xhr = new ActiveXObject("Msxml2.XMLHTTP");
+        } catch (_error) {
+          e = _error;
+          try {
+            xhr = new ActiveXObject("Microsoft.XMLHTTP");
+          } catch (_error) {
+            e = _error;
+          }
+        }
+      }
+      if (!xhr) {
+        throw "Unable to make Ajax Request";
+      }
+      xhr.onreadystatechange = callback;
+      xhr.open("GET", url, false);
+      return xhr.send();
+    };
+
+    return errorToFileMapper;
+
+  })();
 
 }).call(this);
 (function() {
@@ -716,16 +815,14 @@
 
 }).call(this);
 (function() {
-  var _ref, _ref1, _ref2,
-    __hasProp = {}.hasOwnProperty,
+  var __hasProp = {}.hasOwnProperty,
     __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
 
   Teaspoon.Reporters.HTML.ProgressView = (function(_super) {
     __extends(ProgressView, _super);
 
     function ProgressView() {
-      _ref = ProgressView.__super__.constructor.apply(this, arguments);
-      return _ref;
+      return ProgressView.__super__.constructor.apply(this, arguments);
     }
 
     ProgressView.create = function(displayProgress) {
@@ -756,8 +853,7 @@
     __extends(SimpleProgressView, _super);
 
     function SimpleProgressView() {
-      _ref1 = SimpleProgressView.__super__.constructor.apply(this, arguments);
-      return _ref1;
+      return SimpleProgressView.__super__.constructor.apply(this, arguments);
     }
 
     SimpleProgressView.prototype.build = function() {
@@ -779,8 +875,7 @@
     __extends(RadialProgressView, _super);
 
     function RadialProgressView() {
-      _ref2 = RadialProgressView.__super__.constructor.apply(this, arguments);
-      return _ref2;
+      return RadialProgressView.__super__.constructor.apply(this, arguments);
     }
 
     RadialProgressView.supported = !!document.createElement("canvas").getContext;
@@ -868,15 +963,22 @@
     };
 
     SpecView.prototype.buildErrors = function() {
-      var div, error, html, _i, _len, _ref;
+      var div, error, html, mapper, _i, _len, _ref;
       div = this.createEl("div");
       html = "";
       _ref = this.spec.errors();
       for (_i = 0, _len = _ref.length; _i < _len; _i++) {
         error = _ref[_i];
-        html += "<strong>" + (this.htmlSafe(error.message)) + "</strong><br/>" + (this.htmlSafe(error.stack || "Stack trace unavailable"));
+        mapper = new Teaspoon.errorToFileMapper;
+        mapper.fetch(error, (function(_this) {
+          return function(sourceCodeLines) {
+            var sourceCode;
+            sourceCode = "<pre class=\"source-code-extract\">" + (_this.htmlSafe(sourceCodeLines)) + "</pre>";
+            return html += "<strong>" + (_this.htmlSafe(error.message)) + "</strong>" + sourceCode + "<br/>" + (_this.htmlSafe(error.stack || "Stack trace unavailable"));
+          };
+        })(this));
+        div.innerHTML = html;
       }
-      div.innerHTML = html;
       return this.append(div);
     };
 
@@ -903,7 +1005,8 @@
 
 }).call(this);
 (function() {
-  var __hasProp = {}.hasOwnProperty,
+  var __bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; },
+    __hasProp = {}.hasOwnProperty,
     __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
 
   Teaspoon.Reporters.HTML.FailureView = (function(_super) {
@@ -911,19 +1014,58 @@
 
     function FailureView(spec) {
       this.spec = spec;
+      this.removeErrorMessageFromStack = __bind(this.removeErrorMessageFromStack, this);
       FailureView.__super__.constructor.apply(this, arguments);
     }
 
     FailureView.prototype.build = function() {
-      var error, html, _i, _len, _ref;
+      var error, html, mapper, _i, _len, _ref, _results;
       FailureView.__super__.build.call(this, "spec");
       html = "<h1 class=\"teaspoon-clearfix\"><a href=\"" + this.spec.link + "\">" + (this.htmlSafe(this.spec.fullDescription)) + "</a></h1>";
       _ref = this.spec.errors();
+      _results = [];
       for (_i = 0, _len = _ref.length; _i < _len; _i++) {
         error = _ref[_i];
-        html += "<div><strong>" + (this.htmlSafe(error.message)) + "</strong><br/>" + (this.htmlSafe(error.stack || "Stack trace unavailable")) + "</div>";
+        mapper = new Teaspoon.errorToFileMapper;
+        _results.push(mapper.fetch(error, (function(_this) {
+          return function(sourceCodeLines) {
+            var message, sourceCode, stack, _ref1;
+            if (sourceCodeLines != null) {
+              sourceCode = "<pre class=\"source-code-extract\">" + (_this.htmlSafe(sourceCodeLines)) + "</pre>";
+              html += "<div>" + sourceCode + "<strong>" + (_this.htmlSafe(error.message)) + "</strong><br/>" + (_this.htmlSafe(error.stack || "Stack trace unavailable")) + "</div>";
+            } else {
+              sourceCode = "";
+              _ref1 = _this.removeErrorMessageFromStack(error), message = _ref1[0], stack = _ref1[1];
+              html += "<div><strong>" + message + "</strong><br/>" + stack + "</div>";
+            }
+            return _this.el.innerHTML = html;
+          };
+        })(this)));
       }
-      return this.el.innerHTML = html;
+      return _results;
+    };
+
+    FailureView.prototype.removeErrorMessageFromStack = function(error) {
+      var effectivelySame, isSubstring, keepLineInStacktrace, message, stack, _ref;
+      _ref = [error.stack.split("\n"), error.message.split("\n")], stack = _ref[0], message = _ref[1];
+      isSubstring = function(a, b) {
+        return a.lastIndexOf(b) >= 0;
+      };
+      effectivelySame = function(a, b) {
+        return isSubstring(a, b) || isSubstring(b, a);
+      };
+      keepLineInStacktrace = function(a, b) {
+        return !effectivelySame(a, b);
+      };
+      stack = stack.filter(function(stackLine, index) {
+        var a, b, _ref1;
+        _ref1 = [stackLine || "", message[index] || ""], a = _ref1[0], b = _ref1[1];
+        if (a === "" || b === "") {
+          return true;
+        }
+        return keepLineInStacktrace(a, b);
+      });
+      return [this.htmlSafe(message.join("\n")), this.htmlSafe(stack.join("\n"))];
     };
 
     return FailureView;
@@ -1153,8 +1295,7 @@
 
 }).call(this);
 (function() {
-  var _ref,
-    __bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; },
+  var __bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; },
     __hasProp = {}.hasOwnProperty,
     __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
 
@@ -1194,8 +1335,7 @@
     __extends(SpecView, _super);
 
     function SpecView() {
-      _ref = SpecView.__super__.constructor.apply(this, arguments);
-      return _ref;
+      return SpecView.__super__.constructor.apply(this, arguments);
     }
 
     SpecView.prototype.updateState = function(state) {
@@ -1208,7 +1348,7 @@
 
 }).call(this);
 (function() {
-  var env, _ref,
+  var env,
     __hasProp = {}.hasOwnProperty,
     __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
 
@@ -1312,35 +1452,36 @@
     __extends(fixture, _super);
 
     function fixture() {
-      _ref = fixture.__super__.constructor.apply(this, arguments);
-      return _ref;
+      return fixture.__super__.constructor.apply(this, arguments);
     }
 
     window.fixture = fixture;
 
     fixture.load = function() {
-      var args,
-        _this = this;
+      var args;
       args = arguments;
       if (env.started) {
         return fixture.__super__.constructor.load.apply(this, arguments);
       } else {
-        return beforeEach(function() {
-          return fixture.__super__.constructor.load.apply(_this, args);
-        });
+        return beforeEach((function(_this) {
+          return function() {
+            return fixture.__super__.constructor.load.apply(_this, args);
+          };
+        })(this));
       }
     };
 
     fixture.set = function() {
-      var args,
-        _this = this;
+      var args;
       args = arguments;
       if (env.started) {
         return fixture.__super__.constructor.set.apply(this, arguments);
       } else {
-        return beforeEach(function() {
-          return fixture.__super__.constructor.set.apply(_this, args);
-        });
+        return beforeEach((function(_this) {
+          return function() {
+            return fixture.__super__.constructor.set.apply(_this, args);
+          };
+        })(this));
       }
     };
 
