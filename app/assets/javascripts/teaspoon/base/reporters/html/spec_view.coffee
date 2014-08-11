@@ -31,8 +31,11 @@ class Teaspoon.Reporters.HTML.SpecView extends Teaspoon.Reporters.BaseView
     div = @createEl("div")
     html = ""
     for error in @spec.errors()
-      html += """<strong>#{@htmlSafe(error.message)}</strong><br/>#{@htmlSafe(error.stack || "Stack trace unavailable")}"""
-    div.innerHTML = html
+      mapper = new Teaspoon.errorToFileMapper
+      mapper.fetch error, (sourceCodeLines)=>
+        sourceCode = """<pre class="source-code-extract">#{@htmlSafe(sourceCodeLines)}</pre>"""
+        html += """<strong>#{@htmlSafe(error.message)}</strong>#{sourceCode}<br/>#{@htmlSafe(error.stack || "Stack trace unavailable")}"""
+      div.innerHTML = html
     @append(div)
 
 
