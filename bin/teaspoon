@@ -4,3 +4,4 @@ $:.unshift(root) unless $:.include?(root)
 
 require "teaspoon/command_line"
 Teaspoon::CommandLine.new
+binding.pry
