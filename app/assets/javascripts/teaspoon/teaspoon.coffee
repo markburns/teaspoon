@@ -15,7 +15,10 @@ class TeaspoonInterface
         file.parentNode.style.display = "none"
 
 
-window.onload = -> new TeaspoonInterface()
+window.onload = -> 
+  new TeaspoonInterface()
+  hljs.initHighlightingOnLoad()
+
 
 `
 /*!

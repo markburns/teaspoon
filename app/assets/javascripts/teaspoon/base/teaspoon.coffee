@@ -1,4 +1,5 @@
 #= require_self
+#= require linkify
 #= require teaspoon/base/runner
 #= require teaspoon/base/fixture
 #= require teaspoon/base/hook

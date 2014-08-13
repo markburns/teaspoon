@@ -1,45 +1,38 @@
 class Teaspoon.errorToFileMapper
-  constructor: (@linesOfContext =5)->
+  constructor: (error, linesOfContext =5)->
+    @error = new Teaspoon.ErrorWrapper(error)
+    @linesOfContext = linesOfContext
 
-  urlRegex = /\b(https?):\/\/[\-A-Za-z0-9+&@#\/%?=~_|!:,.;]*[\-A-Za-z0-9+&@#\/%=~_|‌​]/
-  lineEndingRegex = /(:[0-9]+)+$/
-  lineNumberRegex = /[0-9]+$/
+  fetch: (loadComplete) =>
+    return loadComplete() unless @error.stackEntryAvailable()
 
-  urlFrom: (error) ->
-    error = new Teaspoon.ErrorWrapper(error)
-    error.urls()[0]
+    @fetchSourceCode(loadComplete)
 
+  fetchSourceCode: (loadComplete) =>
+    xhrRequest @error.url(), =>
+      return unless xhr.readyState == 4
+      throw("Unable to load file \"#{url}\".") unless xhr.status == 200
+      loadComplete(@extractLines(xhr.responseText)...)
 
-  lineNumberFrom: (error)->
-    error = new Teaspoon.ErrorWrapper(error)
-    error.lineNumbers()[0]
+  extractLines: (body)=>
+    lines = body.split("\n")
+    surrounding = Math.floor(@linesOfContext / 2.0)
+    lineIndex = @error.lineNumber() - 1
 
-  fetch: (error, loadComplete) =>
-    url = @urlFrom(error)
-    return loadComplete() unless url?
-    lineNumber = @lineNumberFrom(error)
-    return loadComplete() unless lineNumber?
+    start  = parseInt(lineIndex - surrounding)
+    finish = parseInt(lineIndex + surrounding)
 
-    @fetchSourceCode(url, lineNumber, loadComplete)
+    before = lines.slice(start, lineIndex).join "\n"
+    line = lines[lineIndex]
+    after = lines.slice(lineIndex+ 1, finish+ 1).join "\n"
+
+    [@error, before, line, after]
+
 
   # Private
 
   xhr = null
 
-  fetchSourceCode: (url, lineNumber, loadComplete) =>
-    xhrRequest url, =>
-      return unless xhr.readyState == 4
-      throw("Unable to load file \"#{url}\".") unless xhr.status == 200
-      loadComplete @extractLines(xhr.responseText, lineNumber)
-
-  extractLines: (body, lineNumber)=>
-    lines = body.split("\n")
-
-    start  = parseInt(lineNumber - @linesOfContext / 2.0)
-    finish = parseInt(lineNumber + @linesOfContext / 2.0)
-
-    slice = lines.slice(start,finish)
-    slice.join("\n")
 
   xhrRequest = (url, callback) ->
     if window.XMLHttpRequest # Mozilla, Safari, ...
