@@ -37,7 +37,7 @@ class Teaspoon.Reporters.HTML.SpecView extends Teaspoon.Reporters.BaseView
         sourceCode =  "<pre class='source-code-extract'><code>#{@htmlSafe(before)}\n</code>"
         sourceCode += "<code class='error-line'>#{@htmlSafe(line)}\n</code>"
 
-        if error.character()
+        if error.characters()
           characters = Array(error.characters()).join(" ")
           sourceCode += "<code class='under-error-line'>#{characters}^\n</code>"
 
