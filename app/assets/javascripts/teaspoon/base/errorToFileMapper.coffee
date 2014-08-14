@@ -9,7 +9,8 @@ class Teaspoon.errorToFileMapper
     @fetchSourceCode(loadComplete)
 
   fetchSourceCode: (loadComplete) =>
-    xhrRequest @error.url(), =>
+    url = @error.url()
+    xhrRequest url, =>
       return unless xhr.readyState == 4
       throw("Unable to load file \"#{url}\".") unless xhr.status == 200
       loadComplete(@extractLines(xhr.responseText)...)
