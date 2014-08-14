@@ -527,7 +527,7 @@ window.linkify = linkify;
       this.error = error;
       this.removeErrorMessageFromStack = __bind(this.removeErrorMessageFromStack, this);
       this.lineNumber = __bind(this.lineNumber, this);
-      this.character = __bind(this.character, this);
+      this.characters = __bind(this.characters, this);
       this.lastApplicationStackTrace = __bind(this.lastApplicationStackTrace, this);
       this.url = __bind(this.url, this);
       this.stackEntryAvailable = __bind(this.stackEntryAvailable, this);
@@ -562,7 +562,7 @@ window.linkify = linkify;
 
     lineNumberRegex = /(?::([0-9]+))?:([0-9]+)$/;
 
-    ErrorWrapper.prototype.character = function() {
+    ErrorWrapper.prototype.characters = function() {
       var number, result, _ref;
       result = (_ref = this.lastApplicationStackTrace()) != null ? _ref.match(lineNumberRegex) : void 0;
       number = result[1] != null ? result[2] : null;
@@ -1198,8 +1198,8 @@ window.linkify = linkify;
             var characters, editUrl, sourceCode;
             sourceCode = "<pre class='source-code-extract'><code>" + (_this.htmlSafe(before)) + "\n</code>";
             sourceCode += "<code class='error-line'>" + (_this.htmlSafe(line)) + "\n</code>";
-            if (error.character()) {
-              characters = Array(error.character()).join(" ");
+            if (error.characters()) {
+              characters = Array(error.characters()).join(" ");
               sourceCode += "<code class='under-error-line'>" + characters + "^\n</code>";
             }
             sourceCode += "<code>" + (_this.htmlSafe(after)) + "\n</code>";
