@@ -10,8 +10,7 @@ module Teaspoon
       @options[:files] = opt_parser.parse!
 
       require_console
-      require "byebug"
-      binding.pry if Teaspoon::Console.new(@options).failures?
+      abort if Teaspoon::Console.new(@options).failures?
     rescue Teaspoon::EnvironmentNotFound => e
       abort("#{e.message}\nConsider using -r path/to/teaspoon_env\n")
     end
