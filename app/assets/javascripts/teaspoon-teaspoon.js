@@ -31,8 +31,7 @@
   })();
 
   window.onload = function() {
-    new TeaspoonInterface();
-    return hljs.initHighlightingOnLoad();
+    return new TeaspoonInterface();
   };
 
   

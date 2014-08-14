@@ -649,7 +649,9 @@ window.linkify = linkify;
     };
 
     errorToFileMapper.prototype.fetchSourceCode = function(loadComplete) {
-      return xhrRequest(this.error.url(), (function(_this) {
+      var url;
+      url = this.error.url();
+      return xhrRequest(url, (function(_this) {
         return function() {
           if (xhr.readyState !== 4) {
             return;
@@ -1252,14 +1254,20 @@ window.linkify = linkify;
       var error, html, mapper, _i, _len, _ref, _results;
       FailureView.__super__.build.call(this, "spec");
       html = "<h1 class=\"teaspoon-clearfix\"><a href=\"" + this.spec.link + "\">" + (this.htmlSafe(this.spec.fullDescription)) + "</a></h1>";
-      mapper = new Teaspoon.errorToFileMapper;
       _ref = this.spec.errors();
       _results = [];
       for (_i = 0, _len = _ref.length; _i < _len; _i++) {
         error = _ref[_i];
-        _results.push(mapper.fetch(error, (function(_this) {
-          return function(sourceCodeLines) {
-            throw new Error("not implemented");
+        mapper = new Teaspoon.errorToFileMapper(error);
+        _results.push(mapper.fetch((function(_this) {
+          return function(error, before, line, after) {
+            var sourceCode;
+            sourceCode = "<pre class=\"source-code-extract\">" + (_this.htmlSafe(before)) + "</pre>";
+            sourceCode += "<br/>";
+            sourceCode += "<pre class=\"source-code-extract main-line\">" + (_this.htmlSafe(line)) + "</pre>";
+            sourceCode += "<br/>";
+            sourceCode += "<pre class=\"source-code-extract\">" + (_this.htmlSafe(after)) + "</pre>";
+            html += "<div>" + sourceCode + "<strong>" + (_this.htmlSafe(error.message())) + "</strong><br/>" + (_this.htmlSafe(error.stack())) + "</div>";
             return _this.el.innerHTML = html;
           };
         })(this)));
