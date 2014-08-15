@@ -111,6 +111,138 @@
   })(Error);
 
 }).call(this);
+/* <![CDATA[ */
+/* File:        linkify.js
+ * Version:     20101010_1000
+ * Copyright:   (c) 2010 Jeff Roberson - http://jmrware.com
+ * MIT License: http://www.opensource.org/licenses/mit-license.php
+ *
+ * Summary: This script linkifys http URLs on a page.
+ *
+ * Usage:   See demonstration page: linkify.html
+ */
+
+function linkify(text) {
+    /* Here is a commented version of the regex (in PHP string format):
+    $url_pattern = '/# Rev:20100913_0900 github.com\/jmrware\/LinkifyURL
+    # Match http & ftp URL that is not already linkified.
+      # Alternative 1: URL delimited by (parentheses).
+      (\()                     # $1  "(" start delimiter.
+      ((?:ht|f)tps?:\/\/[a-z0-9\-._~!$&\'()*+,;=:\/?#[\]@%]+)  # $2: URL.
+      (\))                     # $3: ")" end delimiter.
+    | # Alternative 2: URL delimited by [square brackets].
+      (\[)                     # $4: "[" start delimiter.
+      ((?:ht|f)tps?:\/\/[a-z0-9\-._~!$&\'()*+,;=:\/?#[\]@%]+)  # $5: URL.
+      (\])                     # $6: "]" end delimiter.
+    | # Alternative 3: URL delimited by {curly braces}.
+      (\{)                     # $7: "{" start delimiter.
+      ((?:ht|f)tps?:\/\/[a-z0-9\-._~!$&\'()*+,;=:\/?#[\]@%]+)  # $8: URL.
+      (\})                     # $9: "}" end delimiter.
+    | # Alternative 4: URL delimited by <angle brackets>.
+      (<|&(?:lt|\#60|\#x3c);)  # $10: "<" start delimiter (or HTML entity).
+      ((?:ht|f)tps?:\/\/[a-z0-9\-._~!$&\'()*+,;=:\/?#[\]@%]+)  # $11: URL.
+      (>|&(?:gt|\#62|\#x3e);)  # $12: ">" end delimiter (or HTML entity).
+    | # Alternative 5: URL not delimited by (), [], {} or <>.
+      (                        # $13: Prefix proving URL not already linked.
+        (?: ^                  # Can be a beginning of line or string, or
+        | [^=\s\'"\]]          # a non-"=", non-quote, non-"]", followed by
+        ) \s*[\'"]?            # optional whitespace and optional quote;
+      | [^=\s]\s+              # or... a non-equals sign followed by whitespace.
+      )                        # End $13. Non-prelinkified-proof prefix.
+      ( \b                     # $14: Other non-delimited URL.
+        (?:ht|f)tps?:\/\/      # Required literal http, https, ftp or ftps prefix.
+        [a-z0-9\-._~!$\'()*+,;=:\/?#[\]@%]+ # All URI chars except "&" (normal*).
+        (?:                    # Either on a "&" or at the end of URI.
+          (?!                  # Allow a "&" char only if not start of an...
+            &(?:gt|\#0*62|\#x0*3e);                  # HTML ">" entity, or
+          | &(?:amp|apos|quot|\#0*3[49]|\#x0*2[27]); # a [&\'"] entity if
+            [.!&\',:?;]?        # followed by optional punctuation then
+            (?:[^a-z0-9\-._~!$&\'()*+,;=:\/?#[\]@%]|$)  # a non-URI char or EOS.
+          ) &                  # If neg-assertion true, match "&" (special).
+          [a-z0-9\-._~!$\'()*+,;=:\/?#[\]@%]* # More non-& URI chars (normal*).
+        )*                     # Unroll-the-loop (special normal*)*.
+        [a-z0-9\-_~$()*+=\/#[\]@%]  # Last char can\'t be [.!&\',;:?]
+      )                        # End $14. Other non-delimited URL.
+    /imx';
+    */
+    var url_pattern = /(\()((?:ht|f)tps?:\/\/[a-z0-9\-._~!$&'()*+,;=:\/?#[\]@%]+)(\))|(\[)((?:ht|f)tps?:\/\/[a-z0-9\-._~!$&'()*+,;=:\/?#[\]@%]+)(\])|(\{)((?:ht|f)tps?:\/\/[a-z0-9\-._~!$&'()*+,;=:\/?#[\]@%]+)(\})|(<|&(?:lt|#60|#x3c);)((?:ht|f)tps?:\/\/[a-z0-9\-._~!$&'()*+,;=:\/?#[\]@%]+)(>|&(?:gt|#62|#x3e);)|((?:^|[^=\s'"\]])\s*['"]?|[^=\s]\s+)(\b(?:ht|f)tps?:\/\/[a-z0-9\-._~!$'()*+,;=:\/?#[\]@%]+(?:(?!&(?:gt|#0*62|#x0*3e);|&(?:amp|apos|quot|#0*3[49]|#x0*2[27]);[.!&',:?;]?(?:[^a-z0-9\-._~!$&'()*+,;=:\/?#[\]@%]|$))&[a-z0-9\-._~!$'()*+,;=:\/?#[\]@%]*)*[a-z0-9\-_~$()*+=\/#[\]@%])/img;
+//    var url_replace = '$1$4$7$10$13<a href="$2$5$8$11$14">$2$5$8$11$14</a>$3$6$9$12';
+//    return text.replace(url_pattern, url_replace);
+//    var url_replace = '$1$4$7$10$13<a href="$2$5$8$11$14">$2$5$8$11$14</a>$3$6$9$12';
+    return text.replace(url_pattern,
+    		function ($0, $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14) {
+	    		var len = arguments.length;
+	    		for (var i = 0; i < len; ++i) {
+	    			if (arguments[i] === undefined) arguments[i] = "";
+	    		}
+	    		var pre  = $1+$4+$7+$10+$13;
+	    		var url  = $2+$5+$8+$11+$14;
+	    		var post = $3+$6+$9+$12;
+	    		if (allBalanced(url)) {
+	    			return pre +'<a href="'+ url +'">'+ url +'</a>'+ post;
+	    		} else {
+		    		// Fixup urls ending with orphan "]" or "}"
+		    		switch (url.slice(-1)) {
+		    		case ')':
+			    		if (!parensBalanced(url)) {
+			    			if (parensBalanced(url.slice(0,-1))) {
+			    				url = url.slice(0,-1);
+			    				post = ')'+ post
+			    			}
+			    		}
+			    		if (!bracketsBalanced(url)) {
+			    			if (bracketsBalanced(url.slice(0,-1))) {
+			    				url = url.slice(0,-1);
+			    				post = ']'+ post
+			    			}
+			    		}
+			    		break;
+		    		case ']':
+			    		if (!bracketsBalanced(url)) {
+			    			if (bracketsBalanced(url.slice(0,-1))) {
+			    				url = url.slice(0,-1);
+			    				post = ']'+ post
+			    			}
+			    		}
+			    		if (!parensBalanced(url)) {
+			    			if (parensBalanced(url.slice(0,-1))) {
+			    				url = url.slice(0,-1);
+			    				post = ')'+ post
+			    			}
+			    		}
+			    		break;
+		    		}
+	    		}
+	    		if (allBalanced(url)) {
+	    			return pre +'<a href="'+ url +'">'+ url +'</a>'+ post;
+	    		} else return $0;
+    		});
+	function allBalanced(url) {
+		return parensBalanced(url) && bracketsBalanced(url);
+	}
+	function parensBalanced(url) {
+	    var re = /\([^()]*\)/g;
+        while (url.search(re) !== -1) {
+        	url = url.replace(re, '');
+        }
+		if (url.search(/[()]/) === -1) return true;
+		return false;
+	}
+	function bracketsBalanced(url) {
+	    var re = /\[[^[\]]*\]/g;
+        while (url.search(re) !== -1) {
+        	url = url.replace(re, '');
+        }
+		if (url.search(/[[\]]/) === -1) return true;
+		return false;
+	}
+
+}
+
+window.linkify = linkify;
+/* ]]> */
+
+;
 (function() {
   Teaspoon.Runner = (function() {
     Runner.run = false;
@@ -131,8 +263,10 @@
       _ref = Teaspoon.location.search.substring(1).split("&");
       for (_i = 0, _len = _ref.length; _i < _len; _i++) {
         param = _ref[_i];
-        _ref1 = param.split("="), name = _ref1[0], value = _ref1[1];
-        params[decodeURIComponent(name)] = decodeURIComponent(value);
+        if (param !== "") {
+          _ref1 = param.split("="), name = _ref1[0], value = _ref1[1];
+          params[decodeURIComponent(name)] = decodeURIComponent(value);
+        }
       }
       return params;
     };
@@ -160,8 +294,7 @@
   var __slice = [].slice;
 
   Teaspoon.fixture = (function() {
-    var addContent, cleanup, create, load, loadComplete, preload, putContent, set, xhr, xhrRequest,
-      _this = this;
+    var addContent, cleanup, create, load, loadComplete, preload, putContent, set, xhr, xhrRequest;
 
     fixture.cache = {};
 
@@ -340,7 +473,7 @@
 
     return fixture;
 
-  }).call(this);
+  })();
 
 }).call(this);
 (function() {
@@ -382,6 +515,202 @@
       }
     });
   };
+
+}).call(this);
+(function() {
+  var __bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; };
+
+  Teaspoon.ErrorWrapper = (function() {
+    var angularRegex, jasmineRegex, lineEndingRegex, lineNumberRegex, urlRegex;
+
+    function ErrorWrapper(error) {
+      this.error = error;
+      this.removeErrorMessageFromStack = __bind(this.removeErrorMessageFromStack, this);
+      this.lineNumber = __bind(this.lineNumber, this);
+      this.characters = __bind(this.characters, this);
+      this.lastApplicationStackTrace = __bind(this.lastApplicationStackTrace, this);
+      this.url = __bind(this.url, this);
+      this.stackEntryAvailable = __bind(this.stackEntryAvailable, this);
+      this.stack = __bind(this.stack, this);
+      this.message = __bind(this.message, this);
+    }
+
+    urlRegex = /\b(https?):\/\/[\-A-Za-z0-9+&@#\/%?=~_|!:,.;]*[\-A-Za-z0-9+&@#\/%=~_|‌​]/g;
+
+    lineEndingRegex = /(:[0-9]+)+$/;
+
+    ErrorWrapper.prototype.message = function() {
+      return this.removeErrorMessageFromStack()[0];
+    };
+
+    ErrorWrapper.prototype.stack = function() {
+      return this.removeErrorMessageFromStack()[1] || "Stack trace unavailable";
+    };
+
+    ErrorWrapper.prototype.stackEntryAvailable = function() {
+      return (this.url() != null) && (this.lineNumber() != null);
+    };
+
+    ErrorWrapper.prototype.url = function() {
+      var _ref;
+      return (_ref = this.lastApplicationStackTrace()) != null ? _ref.replace(lineEndingRegex, "") : void 0;
+    };
+
+    ErrorWrapper.prototype.lastApplicationStackTrace = function() {
+      return this.applicationStackTraceEntries()[0];
+    };
+
+    lineNumberRegex = /(?::([0-9]+))?:([0-9]+)$/;
+
+    ErrorWrapper.prototype.characters = function() {
+      var number, result, _ref;
+      result = (_ref = this.lastApplicationStackTrace()) != null ? _ref.match(lineNumberRegex) : void 0;
+      number = result[1] != null ? result[2] : null;
+      if (number) {
+        return parseInt(number);
+      }
+    };
+
+    ErrorWrapper.prototype.lineNumber = function() {
+      var number, result;
+      result = this.lastApplicationStackTrace().match(lineNumberRegex);
+      number = result[1] != null ? result[1] : result[2];
+      return parseInt(number);
+    };
+
+    jasmineRegex = /jasmine\/\d\.\d\.\d\.js/;
+
+    angularRegex = /angular.*\.js/;
+
+    ErrorWrapper.prototype.applicationStackTraceEntries = function() {
+      return this.rawStackTraceEntries().filter(function(url) {
+        var isAngular, isJasmine;
+        isJasmine = url.match(jasmineRegex) != null;
+        isAngular = url.match(angularRegex) != null;
+        return (!isJasmine) && (!isAngular);
+      });
+    };
+
+    ErrorWrapper.prototype.rawStackTraceEntries = function() {
+      return this.compact(this.error.stack.match(urlRegex));
+    };
+
+    ErrorWrapper.prototype.compact = function(array) {
+      return array.filter(function(item) {
+        return item != null;
+      });
+    };
+
+    ErrorWrapper.prototype.removeErrorMessageFromStack = function() {
+      var effectivelySame, isSubstring, keepLineInStacktrace, message, stack, _ref;
+      _ref = [this.error.stack.split("\n"), this.error.message.split("\n")], stack = _ref[0], message = _ref[1];
+      isSubstring = function(a, b) {
+        return a.lastIndexOf(b) >= 0;
+      };
+      effectivelySame = function(a, b) {
+        return isSubstring(a, b) || isSubstring(b, a);
+      };
+      keepLineInStacktrace = function(a, b) {
+        return !effectivelySame(a, b);
+      };
+      stack = stack.filter(function(stackLine, index) {
+        var a, b, _ref1;
+        _ref1 = [stackLine || "", message[index] || ""], a = _ref1[0], b = _ref1[1];
+        if (a === "" || b === "") {
+          return true;
+        }
+        return keepLineInStacktrace(a, b);
+      });
+      return [message.join("\n"), stack.join("\n")];
+    };
+
+    return ErrorWrapper;
+
+  })();
+
+}).call(this);
+(function() {
+  var __bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; };
+
+  Teaspoon.errorToFileMapper = (function() {
+    var xhr, xhrRequest;
+
+    function errorToFileMapper(error, linesOfContext) {
+      if (linesOfContext == null) {
+        linesOfContext = 5;
+      }
+      this.extractLines = __bind(this.extractLines, this);
+      this.fetchSourceCode = __bind(this.fetchSourceCode, this);
+      this.fetch = __bind(this.fetch, this);
+      this.error = new Teaspoon.ErrorWrapper(error);
+      this.linesOfContext = linesOfContext;
+    }
+
+    errorToFileMapper.prototype.fetch = function(loadComplete) {
+      if (!this.error.stackEntryAvailable()) {
+        return loadComplete();
+      }
+      return this.fetchSourceCode(loadComplete);
+    };
+
+    errorToFileMapper.prototype.fetchSourceCode = function(loadComplete) {
+      var url;
+      url = this.error.url();
+      return xhrRequest(url, (function(_this) {
+        return function() {
+          if (xhr.readyState !== 4) {
+            return;
+          }
+          if (xhr.status !== 200) {
+            throw "Unable to load file \"" + url + "\".";
+          }
+          return loadComplete.apply(null, _this.extractLines(xhr.responseText));
+        };
+      })(this));
+    };
+
+    errorToFileMapper.prototype.extractLines = function(body) {
+      var after, before, finish, line, lineIndex, lines, start, surrounding;
+      lines = body.split("\n");
+      surrounding = Math.floor(this.linesOfContext / 2.0);
+      lineIndex = this.error.lineNumber() - 1;
+      start = parseInt(lineIndex - surrounding);
+      finish = parseInt(lineIndex + surrounding);
+      before = lines.slice(start, lineIndex).join("\n");
+      line = lines[lineIndex];
+      after = lines.slice(lineIndex + 1, finish + 1).join("\n");
+      return [this.error, before, line, after];
+    };
+
+    xhr = null;
+
+    xhrRequest = function(url, callback) {
+      var e;
+      if (window.XMLHttpRequest) {
+        xhr = new XMLHttpRequest();
+      } else if (window.ActiveXObject) {
+        try {
+          xhr = new ActiveXObject("Msxml2.XMLHTTP");
+        } catch (_error) {
+          e = _error;
+          try {
+            xhr = new ActiveXObject("Microsoft.XMLHTTP");
+          } catch (_error) {
+            e = _error;
+          }
+        }
+      }
+      if (!xhr) {
+        throw "Unable to make Ajax Request";
+      }
+      xhr.onreadystatechange = callback;
+      xhr.open("GET", url, false);
+      return xhr.send();
+    };
+
+    return errorToFileMapper;
+
+  })();
 
 }).call(this);
 (function() {
@@ -716,16 +1045,14 @@
 
 }).call(this);
 (function() {
-  var _ref, _ref1, _ref2,
-    __hasProp = {}.hasOwnProperty,
+  var __hasProp = {}.hasOwnProperty,
     __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
 
   Teaspoon.Reporters.HTML.ProgressView = (function(_super) {
     __extends(ProgressView, _super);
 
     function ProgressView() {
-      _ref = ProgressView.__super__.constructor.apply(this, arguments);
-      return _ref;
+      return ProgressView.__super__.constructor.apply(this, arguments);
     }
 
     ProgressView.create = function(displayProgress) {
@@ -756,8 +1083,7 @@
     __extends(SimpleProgressView, _super);
 
     function SimpleProgressView() {
-      _ref1 = SimpleProgressView.__super__.constructor.apply(this, arguments);
-      return _ref1;
+      return SimpleProgressView.__super__.constructor.apply(this, arguments);
     }
 
     SimpleProgressView.prototype.build = function() {
@@ -779,8 +1105,7 @@
     __extends(RadialProgressView, _super);
 
     function RadialProgressView() {
-      _ref2 = RadialProgressView.__super__.constructor.apply(this, arguments);
-      return _ref2;
+      return RadialProgressView.__super__.constructor.apply(this, arguments);
     }
 
     RadialProgressView.supported = !!document.createElement("canvas").getContext;
@@ -868,15 +1193,31 @@
     };
 
     SpecView.prototype.buildErrors = function() {
-      var div, error, html, _i, _len, _ref;
+      var div, error, html, mapper, _i, _len, _ref;
       div = this.createEl("div");
       html = "";
       _ref = this.spec.errors();
       for (_i = 0, _len = _ref.length; _i < _len; _i++) {
         error = _ref[_i];
-        html += "<strong>" + (this.htmlSafe(error.message)) + "</strong><br/>" + (this.htmlSafe(error.stack || "Stack trace unavailable"));
+        mapper = new Teaspoon.errorToFileMapper(error);
+        mapper.fetch((function(_this) {
+          return function(error, before, line, after) {
+            var characters, editUrl, sourceCode;
+            sourceCode = "<pre class='source-code-extract'><code>" + (_this.htmlSafe(before)) + "\n</code>";
+            sourceCode += "<code class='error-line'>" + (_this.htmlSafe(line)) + "\n</code>";
+            if (error.characters()) {
+              characters = Array(error.characters()).join(" ");
+              sourceCode += "<code class='under-error-line'>" + characters + "^\n</code>";
+            }
+            sourceCode += "<code>" + (_this.htmlSafe(after)) + "\n</code>";
+            sourceCode += "</pre>";
+            editUrl = "mvim://open?url=file:///Users/markburns/kanji/teaspoon/lib/teaspoon/suite.rb&line=106";
+            html += "<strong>" + (_this.htmlSafe(error.message())) + "</strong><a class=\"file\" href=\"" + editUrl + "\">" + sourceCode + "</a>";
+            html += "<pre class=\"source-code-extract stack-trace\"><code>\n" + (linkify(_this.htmlSafe(error.stack()))) + "</code></pre>";
+            return div.innerHTML = html;
+          };
+        })(this));
       }
-      div.innerHTML = html;
       return this.append(div);
     };
 
@@ -915,15 +1256,28 @@
     }
 
     FailureView.prototype.build = function() {
-      var error, html, _i, _len, _ref;
+      var error, html, mapper, _i, _len, _ref, _results;
       FailureView.__super__.build.call(this, "spec");
       html = "<h1 class=\"teaspoon-clearfix\"><a href=\"" + this.spec.link + "\">" + (this.htmlSafe(this.spec.fullDescription)) + "</a></h1>";
       _ref = this.spec.errors();
+      _results = [];
       for (_i = 0, _len = _ref.length; _i < _len; _i++) {
         error = _ref[_i];
-        html += "<div><strong>" + (this.htmlSafe(error.message)) + "</strong><br/>" + (this.htmlSafe(error.stack || "Stack trace unavailable")) + "</div>";
+        mapper = new Teaspoon.errorToFileMapper(error);
+        _results.push(mapper.fetch((function(_this) {
+          return function(error, before, line, after) {
+            var sourceCode;
+            sourceCode = "<pre class=\"source-code-extract\">" + (_this.htmlSafe(before)) + "</pre>";
+            sourceCode += "<br/>";
+            sourceCode += "<pre class=\"source-code-extract main-line\">" + (_this.htmlSafe(line)) + "</pre>";
+            sourceCode += "<br/>";
+            sourceCode += "<pre class=\"source-code-extract\">" + (_this.htmlSafe(after)) + "</pre>";
+            html += "<div>" + sourceCode + "<strong>" + (_this.htmlSafe(error.message())) + "</strong><br/>" + (_this.htmlSafe(error.stack())) + "</div>";
+            return _this.el.innerHTML = html;
+          };
+        })(this)));
       }
-      return this.el.innerHTML = html;
+      return _results;
     };
 
     return FailureView;
@@ -1153,8 +1507,7 @@
 
 }).call(this);
 (function() {
-  var _ref,
-    __bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; },
+  var __bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; },
     __hasProp = {}.hasOwnProperty,
     __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
 
@@ -1194,8 +1547,7 @@
     __extends(SpecView, _super);
 
     function SpecView() {
-      _ref = SpecView.__super__.constructor.apply(this, arguments);
-      return _ref;
+      return SpecView.__super__.constructor.apply(this, arguments);
     }
 
     SpecView.prototype.updateState = function(state) {
@@ -1208,7 +1560,7 @@
 
 }).call(this);
 (function() {
-  var env, _ref,
+  var env,
     __hasProp = {}.hasOwnProperty,
     __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
 
@@ -1312,35 +1664,36 @@
     __extends(fixture, _super);
 
     function fixture() {
-      _ref = fixture.__super__.constructor.apply(this, arguments);
-      return _ref;
+      return fixture.__super__.constructor.apply(this, arguments);
     }
 
     window.fixture = fixture;
 
     fixture.load = function() {
-      var args,
-        _this = this;
+      var args;
       args = arguments;
       if (env.started) {
         return fixture.__super__.constructor.load.apply(this, arguments);
       } else {
-        return beforeEach(function() {
-          return fixture.__super__.constructor.load.apply(_this, args);
-        });
+        return beforeEach((function(_this) {
+          return function() {
+            return fixture.__super__.constructor.load.apply(_this, args);
+          };
+        })(this));
       }
     };
 
     fixture.set = function() {
-      var args,
-        _this = this;
+      var args;
       args = arguments;
       if (env.started) {
         return fixture.__super__.constructor.set.apply(this, arguments);
       } else {
-        return beforeEach(function() {
-          return fixture.__super__.constructor.set.apply(_this, args);
-        });
+        return beforeEach((function(_this) {
+          return function() {
+            return fixture.__super__.constructor.set.apply(_this, args);
+          };
+        })(this));
       }
     };
 

@@ -31,8 +31,25 @@ class Teaspoon.Reporters.HTML.SpecView extends Teaspoon.Reporters.BaseView
     div = @createEl("div")
     html = ""
     for error in @spec.errors()
-      html += """<strong>#{@htmlSafe(error.message)}</strong><br/>#{@htmlSafe(error.stack || "Stack trace unavailable")}"""
-    div.innerHTML = html
+      mapper = new Teaspoon.errorToFileMapper(error)
+
+      mapper.fetch (error, before, line, after)=>
+        sourceCode =  "<pre class='source-code-extract'><code>#{@htmlSafe(before)}\n</code>"
+        sourceCode += "<code class='error-line'>#{@htmlSafe(line)}\n</code>"
+
+        if error.characters()
+          characters = Array(error.characters()).join(" ")
+          sourceCode += "<code class='under-error-line'>#{characters}^\n</code>"
+
+        sourceCode += "<code>#{@htmlSafe(after)}\n</code>"
+        sourceCode += "</pre>"
+
+        editUrl="mvim://open?url=file:///Users/markburns/kanji/teaspoon/lib/teaspoon/suite.rb&line=106"
+
+        html += """<strong>#{@htmlSafe(error.message())}</strong><a class="file" href="#{editUrl}">#{sourceCode}</a>"""
+        html += """<pre class="source-code-extract stack-trace"><code>\n#{linkify @htmlSafe(error.stack())}</code></pre>"""
+
+        div.innerHTML = html
     @append(div)
 
 

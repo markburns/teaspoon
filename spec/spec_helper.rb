@@ -8,6 +8,7 @@ Coveralls.wear!
 require "rspec/rails"
 require "capybara/rails"
 require "aruba/api"
+require "pry-byebug"
 
 require "ostruct"
 

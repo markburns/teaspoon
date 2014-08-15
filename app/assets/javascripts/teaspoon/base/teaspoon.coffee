@@ -1,7 +1,10 @@
 #= require_self
+#= require linkify
 #= require teaspoon/base/runner
 #= require teaspoon/base/fixture
 #= require teaspoon/base/hook
+#= require teaspoon/base/errorWrapper
+#= require teaspoon/base/errorToFileMapper
 #= require teaspoon/base/reporters/html
 #= require teaspoon/base/reporters/console
 

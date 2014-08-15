@@ -13,8 +13,9 @@ class Teaspoon.Runner
   getParams: ->
     params = {}
     for param in Teaspoon.location.search.substring(1).split("&")
-      [name, value] = param.split("=")
-      params[decodeURIComponent(name)] = decodeURIComponent(value)
+      if param != ""
+        [name, value] = param.split("=")
+        params[decodeURIComponent(name)] = decodeURIComponent(value)
     params
 
 
