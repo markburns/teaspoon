@@ -521,7 +521,7 @@ window.linkify = linkify;
   var __bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; };
 
   Teaspoon.ErrorWrapper = (function() {
-    var lineEndingRegex, lineNumberRegex, urlRegex;
+    var angularRegex, jasmineRegex, lineEndingRegex, lineNumberRegex, urlRegex;
 
     function ErrorWrapper(error) {
       this.error = error;
@@ -578,11 +578,16 @@ window.linkify = linkify;
       return parseInt(number);
     };
 
+    jasmineRegex = /jasmine\/\d\.\d\.\d\.js/;
+
+    angularRegex = /angular.*\.js/;
+
     ErrorWrapper.prototype.applicationStackTraceEntries = function() {
-      var jasmineRegex;
-      jasmineRegex = /jasmine\/\d\.\d\.\d\.js/;
       return this.rawStackTraceEntries().filter(function(url) {
-        return !(url.match(jasmineRegex) != null);
+        var isAngular, isJasmine;
+        isJasmine = url.match(jasmineRegex) != null;
+        isAngular = url.match(angularRegex) != null;
+        return (!isJasmine) && (!isAngular);
       });
     };
 
