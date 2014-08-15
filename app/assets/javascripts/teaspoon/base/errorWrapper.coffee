@@ -32,12 +32,15 @@ class Teaspoon.ErrorWrapper
     number = if result[1]? then result[1] else result[2]
     parseInt(number)
 
+  jasmineRegex = /jasmine\/\d\.\d\.\d\.js/
+  angularRegex = /angular.*\.js/
 
   applicationStackTraceEntries: ->
-    jasmineRegex = /jasmine\/\d\.\d\.\d\.js/
-
     @rawStackTraceEntries().filter (url)->
-      !(url.match(jasmineRegex)?)
+      isJasmine = url.match(jasmineRegex)?
+      isAngular = url.match(angularRegex)?
+
+      (!isJasmine) && (!isAngular)
 
   rawStackTraceEntries: ->
     @compact @error.stack.match(urlRegex)
